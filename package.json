@@ -1,22 +1,79 @@
 {
-  "name": "react-native-audioplayer",
-  "version": "0.2.0",
+  "_args": [
+    [
+      "react-native-audioplayer@^0.2.0",
+      "/Users/scgough/React/XPlat-Component-Test-App"
+    ]
+  ],
+  "_from": "react-native-audioplayer@>=0.2.0 <0.3.0",
+  "_id": "react-native-audioplayer@0.2.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/react-native-audioplayer",
+  "_nodeVersion": "4.0.0",
+  "_npmUser": {
+    "email": "andreas.keller@gmx.ch",
+    "name": "andreaskeller"
+  },
+  "_npmVersion": "2.14.2",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "react-native-audioplayer",
+    "raw": "react-native-audioplayer@^0.2.0",
+    "rawSpec": "^0.2.0",
+    "scope": null,
+    "spec": ">=0.2.0 <0.3.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/react-native-audioplayer/-/react-native-audioplayer-0.2.0.tgz",
+  "_shasum": "b93bed4f871d2817a25f2a00a464067451b14486",
+  "_shrinkwrap": null,
+  "_spec": "react-native-audioplayer@^0.2.0",
+  "_where": "/Users/scgough/React/XPlat-Component-Test-App",
+  "author": {
+    "email": "andreas.keller@gmx.ch",
+    "name": "Andreas Keller",
+    "url": "https://github.com/andreaskeller"
+  },
+  "bugs": {
+    "url": "https://github.com/andreaskeller/react-native-audioplayer/issues"
+  },
+  "dependencies": {},
   "description": "Small audio player library for react native",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "b93bed4f871d2817a25f2a00a464067451b14486",
+    "tarball": "http://registry.npmjs.org/react-native-audioplayer/-/react-native-audioplayer-0.2.0.tgz"
+  },
+  "gitHead": "e0e35f39ef382277cc1532509e4bf07e6391975b",
+  "homepage": "https://github.com/andreaskeller/react-native-audioplayer#readme",
+  "keywords": [
+    "android",
+    "audioplayer",
+    "ios",
+    "react-component",
+    "react-native"
+  ],
+  "license": "MIT",
   "main": "AudioPlayer.js",
+  "maintainers": [
+    {
+      "name": "andreaskeller",
+      "email": "andreas.keller@gmx.ch"
+    }
+  ],
+  "name": "react-native-audioplayer",
+  "optionalDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/andreaskeller/react-native-audioplayer.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:andreaskeller/react-native-audioplayer.git"
-  },
-  "keywords": [
-    "react-component",
-    "react-native",
-    "ios",
-    "android",
-    "audioplayer"
-  ],
-  "author": "Andreas Keller <andreas.keller@gmx.ch> (https://github.com/andreaskeller)",
-  "license": "MIT"
+  "version": "0.2.0"
 }

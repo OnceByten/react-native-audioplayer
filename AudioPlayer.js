@@ -10,8 +10,16 @@ var AudioPlayer = {
     if (fileName === undefined) {
       RNAudioPlayer.resume();
     } else {
-      fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "");
+      fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "").replace("-","_");
       RNAudioPlayer.play(fileName);
+    }
+  },
+  initialise(fileName: string, callback: callback) {
+    if (fileName === undefined) {
+    //  RNAudioPlayer.resume();
+    } else {
+      fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "").replace("-","_");
+      RNAudioPlayer.initialise(fileName, (response) => callback && callback(response));
     }
   },
   pause() {
@@ -25,6 +33,12 @@ var AudioPlayer = {
   },
   startFadeOut() {
     RNAudioPlayer.startFadeOut();
+  },
+  setFadeOutInterval(val) {
+    RNAudioPlayer.setFadeOutInterval(val);
+  },
+  getLastPointInTime(callback) {
+    RNAudioPlayer.getLastPointInTime((response) => { callback(response) });
   }
 };
 

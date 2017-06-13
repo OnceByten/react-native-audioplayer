@@ -5,8 +5,26 @@ var { Platform } = require('react-native');
 
 var AudioPlayer = {
   play(fileName: string) {
-    fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "");
-    RNAudioPlayer.play(fileName);
+    /*fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "");
+    RNAudioPlayer.play(fileName);*/
+    if (fileName === undefined) {
+      RNAudioPlayer.resume();
+    } else {
+      fileName = Platform.OS === 'ios' ? fileName : fileName.replace(/\.[^/.]+$/, "");
+      RNAudioPlayer.play(fileName);
+    }
+  },
+  pause() {
+    RNAudioPlayer.pause();
+  },
+  stop() {
+    RNAudioPlayer.stop();
+  },
+  seek(val) {
+    RNAudioPlayer.seek(val);
+  },
+  startFadeOut() {
+    RNAudioPlayer.startFadeOut();
   }
 };
 

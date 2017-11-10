@@ -1,5 +1,7 @@
 package com.sh3rawi.RNAudioPlayer;
 
+import com.android.vending.expansion.zipfile.APKExpansionSupport;
+import com.android.vending.expansion.zipfile.ZipResourceFile;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -10,6 +12,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.util.Log;
@@ -18,6 +21,7 @@ import android.widget.SeekBar;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+
 
 public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements Runnable {
   ReactApplicationContext reactContext;
@@ -110,12 +114,9 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
 
   @ReactMethod
   public void play(String audio) {
-      //Log.d("PMKDEBUG", "play");
     if(audio!=null) {
-        //Log.d("PMKDEBUG", "audio: " + audio);
       String fname = audio.toLowerCase();
       int resID = this.reactContext.getResources().getIdentifier(fname, "raw", this.reactContext.getPackageName());
-        //Log.d("PMKDEBUG", "resID: " + String.valueOf(resID));
       mp = MediaPlayer.create(this.reactContext, resID);
     }
     mVolume = 1;
@@ -134,26 +135,134 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
       }
     });
   }
+
+    @ReactMethod
+    public void playFromExpansion(String audio, int mainVersion, int patchVersion) {
+        if(audio!=null) {
+            Log.d("AudioDEBUG", "audio: " + audio);
+            Log.d("AudioDEBUG", "mainVersion: " + String.valueOf(mainVersion));
+            Log.d("AudioDEBUG", "patchVersion: " + String.valueOf(patchVersion));
+            String fname = audio.toLowerCase().replace(".mp3","") + ".mp3";
+
+            ZipResourceFile expansionFile= null;
+            AssetFileDescriptor fd= null;
+            try {
+                expansionFile = APKExpansionSupport.getAPKExpansionZipFile(this.reactContext, mainVersion, patchVersion);
+                if(expansionFile!=null) {
+                    Log.d("AudioDEBUG", "expansionFile NOT null: " + fname);
+                    fd = expansionFile.getAssetFileDescriptor(fname);
+                }
+                else {
+                    Log.d("AudioDEBUG", "expansionFile null");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+            if(fd==null) {
+                //ERROR!
+                Log.d("AudioDEBUG", "File error!");
+            }
+            else {
+                mp = new MediaPlayer();
+                try {
+                    mp.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());
+                    mp.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                mVolume = 1;
+                mp.setVolume(mVolume,mVolume);
+                mp.start();
+                new Thread(this).start();
+                mp.setOnCompletionListener(new OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        mp.reset();
+                        mp.release();
+                        mp = null;
+                        reactContext
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                                .emit("playerFinished", true);
+                    }
+                });
+            }
+
+        }
+
+    }
+
     @ReactMethod
     public void initialise(String audio, final Callback callback) {
-        //Log.d("PMKDEBUG", "play");
         if(audio!=null) {
-            //Log.d("PMKDEBUG", "audio: " + audio);
             String fname = audio.toLowerCase();
 
             int resID = this.reactContext.getResources().getIdentifier(fname, "raw", this.reactContext.getPackageName());
-            //Log.d("PMKDEBUG", "resID: " + String.valueOf(resID));
             mp = MediaPlayer.create(this.reactContext, resID);
         }
         mVolume = 1;
         mp.setVolume(mVolume, mVolume);
 
-        //Log.d("PMKDEBUG", String.valueOf(mp.getDuration()));
         WritableMap map = Arguments.createMap();
 
         map.putDouble("duration", (mp.getDuration() / 1000.0f));
 
         callback.invoke(map);
+    }
+
+    @ReactMethod
+    public void initialiseFromExpansion(String audio, int mainVersion, int patchVersion, final Callback callback) {
+
+        if(audio!=null) {
+//            Log.d("AudioDEBUG", "audio: " + audio);
+//            Log.d("AudioDEBUG", "mainVersion: " + String.valueOf(mainVersion));
+//            Log.d("AudioDEBUG", "patchVersion: " + String.valueOf(patchVersion));
+            String fname = audio.toLowerCase().replace(".mp3","") + ".mp3";
+
+            ZipResourceFile expansionFile= null;
+            AssetFileDescriptor fd= null;
+            try {
+                expansionFile = APKExpansionSupport.getAPKExpansionZipFile(this.reactContext, mainVersion, patchVersion);
+                if(expansionFile!=null) {
+                    //Log.d("AudioDEBUG", "expansionFile NOT null: " + fname);
+                    fd = expansionFile.getAssetFileDescriptor(fname);
+                }
+                else {
+                    //Log.d("AudioDEBUG", "expansionFile null");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+            if(fd==null) {
+                //ERROR!
+                Log.d("AudioDEBUG", "File error!");
+            }
+            else {
+                mp = new MediaPlayer();
+                try {
+                    mp.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());
+                    mp.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                mVolume = 1;
+                mp.setVolume(mVolume, mVolume);
+
+                WritableMap map = Arguments.createMap();
+
+                map.putDouble("duration", (mp.getDuration() / 1000.0f));
+
+                callback.invoke(map);
+            }
+        }
+
+
+
     }
 
     public void run() {

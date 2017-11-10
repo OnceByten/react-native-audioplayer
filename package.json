@@ -5,10 +5,12 @@
       "/Users/scgough/React/XPlat-Component-Test-App"
     ]
   ],
-  "_from": "react-native-audioplayer@>=0.2.0 <0.3.0",
+  "_from": "github:oncebyten/react-native-audioplayer",
   "_id": "react-native-audioplayer@0.2.0",
+  "_inBundle": false,
   "_inCache": true,
   "_installable": true,
+  "_integrity": "sha1-JRyGy2thtRa3xoYHWpHcwwzipIE=",
   "_location": "/react-native-audioplayer",
   "_nodeVersion": "4.0.0",
   "_npmUser": {
@@ -18,30 +20,34 @@
   "_npmVersion": "2.14.2",
   "_phantomChildren": {},
   "_requested": {
+    "type": "git",
+    "raw": "react-native-audioplayer@github:oncebyten/react-native-audioplayer",
     "name": "react-native-audioplayer",
-    "raw": "react-native-audioplayer@^0.2.0",
-    "rawSpec": "^0.2.0",
-    "scope": null,
-    "spec": ">=0.2.0 <0.3.0",
-    "type": "range"
+    "escapedName": "react-native-audioplayer",
+    "rawSpec": "github:oncebyten/react-native-audioplayer",
+    "saveSpec": "github:oncebyten/react-native-audioplayer",
+    "fetchSpec": null,
+    "gitCommittish": "master"
   },
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/react-native-audioplayer/-/react-native-audioplayer-0.2.0.tgz",
+  "_resolved": "github:oncebyten/react-native-audioplayer#f85d31c3c72aac0cb547108d87439bcb3cefce89",
   "_shasum": "b93bed4f871d2817a25f2a00a464067451b14486",
   "_shrinkwrap": null,
-  "_spec": "react-native-audioplayer@^0.2.0",
-  "_where": "/Users/scgough/React/XPlat-Component-Test-App",
+  "_spec": "react-native-audioplayer@github:oncebyten/react-native-audioplayer",
+  "_where": "/Users/scgough/React/PMK-Phobias",
   "author": {
-    "email": "andreas.keller@gmx.ch",
     "name": "Andreas Keller",
+    "email": "andreas.keller@gmx.ch",
     "url": "https://github.com/andreaskeller"
   },
   "bugs": {
     "url": "https://github.com/andreaskeller/react-native-audioplayer/issues"
   },
+  "bundleDependencies": false,
   "dependencies": {},
+  "deprecated": false,
   "description": "Small audio player library for react native",
   "devDependencies": {},
   "directories": {},

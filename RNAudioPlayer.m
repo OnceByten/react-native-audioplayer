@@ -58,7 +58,7 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
                   )
 {
     NSError *err;
-    
+    //BOOL errorFree = true;
     //[[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     
     
@@ -91,9 +91,23 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
     _lastTime = 0;
     
     if(err) {
-        
-        callback(@[@(-1), @(-1)]);
-    } else {
+        err = nil;
+        NSString *noCapsFilename = [fileName lowercaseString];
+        if([noCapsFilename rangeOfString:@"/"].location != NSNotFound){
+            NSURL *soundFileURL = [NSURL fileURLWithPath:noCapsFilename];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+        }else{
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[noCapsFilename pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
+        }
+        self.audioPlayer.delegate = self;
+        if(err){
+            //errorFree = false;
+            callback(@[@(-1), @(-1)]);
+        }
+    }
+    if(!err){
         
         [self.audioPlayer setCurrentTime:0];
         [self.audioPlayer prepareToPlay];

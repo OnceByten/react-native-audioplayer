@@ -62,7 +62,10 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
               }
           }
           catch (Exception e){
-              Log.d("AUDIO", e.getMessage());
+              try {
+                  Log.d("AUDIO", e.getMessage());
+              }
+              catch(Exception e) {}
           }
       }
   }

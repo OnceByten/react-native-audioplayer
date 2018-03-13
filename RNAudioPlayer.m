@@ -14,6 +14,8 @@ int _progressUpdateInterval;
 NSDate *_prevProgressUpdateTime;
 NSTimeInterval _lastTime;
 NSTimeInterval fadeOutInterval;
+float _baseVolume = 0.05f;
+
 
 NSTimer *_testTimer;
 
@@ -25,10 +27,25 @@ RCT_EXPORT_METHOD(play:(NSString *)fileName)
 {
     NSError *error;
     
+    // orginal code
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [session setCategory: AVAudioSessionCategoryPlayback error: nil];
     [session setActive: YES error: nil];
+    // /orginal code
     
+    /*  //npomfrets edit
+     AVAudioSession *session = [AVAudioSession sharedInstance];
+     +    [session setCategory: AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionDuckOthers error: nil];
+     +    [session setActive: YES error: nil];
+     */
+    // test code
+    /*
+     AVAudioSession *session = [AVAudioSession sharedInstance];
+    [session setCategory: AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionDuckOthers error: nil];
+    [session setActive: YES error: nil];
+    */
+    
+    // //test code
     //NSString *soundFilePath = [NSString stringWithFormat:@"%@/enP131.mp3",[[NSBundle mainBundle] resourcePath]];
     
     
@@ -44,17 +61,48 @@ RCT_EXPORT_METHOD(play:(NSString *)fileName)
     }
     self.audioPlayer.delegate = self;
     
+    if(error){
+        error = nil;
+        NSString *noCapsFilename = [fileName lowercaseString];
+        if([noCapsFilename rangeOfString:@"/"].location != NSNotFound){
+            NSURL *soundFileURL = [NSURL fileURLWithPath:noCapsFilename];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+        }else{
+            // original player code
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[noCapsFilename pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+        }
+        self.audioPlayer.delegate = self;
+    }
+    
     if(error) {
         [self stopProgressTimer];
     } else {
         [self startProgressTimer];
-        
+        [self.audioPlayer setVolume:_baseVolume];
         [self.audioPlayer play];
     }
 }
 
+RCT_EXPORT_METHOD(setVolume:(nonnull NSNumber*)value) {
+    //AVAudioPlayer* player = [selssf playerForKey:key];
+    /*
+    AVAudioPlayer* player = [self.audioPlayer];
+    if (player) {
+        player.volume = [value floatValue];
+    }
+     */
+    _baseVolume = [value floatValue];
+    float curVol = self.audioPlayer.volume;
+    [self.audioPlayer setVolume:_baseVolume]; //[value floatValue];
+    float newVol = self.audioPlayer.volume;
+    _baseVolume = [value floatValue];
+}
+
 RCT_EXPORT_METHOD(initialise:(NSString *)fileName
                   success:(RCTResponseSenderBlock)callback
+                  
                   )
 {
     NSError *err;
@@ -86,6 +134,7 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
         self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
     }
     self.audioPlayer.delegate = self;
+    //self.audioPlayer.volume = _baseVolume;
     
     fadeOutInterval = 0;
     _lastTime = 0;
@@ -267,7 +316,8 @@ RCT_EXPORT_METHOD(getLastPointInTime: (RCTResponseSenderBlock)callback)
     [self stopProgressTimer];
     [self sendProgressUpdate];
     
-    self.audioPlayer.volume = 1;
+    //self.audioPlayer.volume = 1;
+    self.audioPlayer.volume = _baseVolume;
     
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"playerFinished" body:@{
                                                                                          @"finished": @TRUE

@@ -55,6 +55,9 @@ var AudioPlayer = {
   },
   getLastPointInTime(callback) {
     RNAudioPlayer.getLastPointInTime((response) => { callback(response) });
+  },
+  setVolume(val) {
+    RNAudioPlayer.setVolume(val);
   }
 };
 

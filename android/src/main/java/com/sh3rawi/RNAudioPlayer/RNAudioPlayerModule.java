@@ -30,7 +30,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
   ReactApplicationContext reactContext;
   MediaPlayer mp;
   private static AudioManager audioManager;
-  private float mVolume = 1;
+  private float mVolume = 0.5f;
   private int mFadeOutTime = 0;
 
   public RNAudioPlayerModule(ReactApplicationContext reactContext) {
@@ -186,7 +186,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
       int resID = this.reactContext.getResources().getIdentifier(fname, "raw", this.reactContext.getPackageName());
       mp = MediaPlayer.create(this.reactContext, resID);
     }
-    mVolume = 1;
+    mVolume = 0.5f;
     mp.setVolume(mVolume,mVolume);
     mp.start();
     new Thread(this).start();
@@ -240,7 +240,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
                     e.printStackTrace();
                 }
 
-                mVolume = 1;
+                mVolume = 0.5f;
                 mp.setVolume(mVolume,mVolume);
                 mp.start();
                 new Thread(this).start();
@@ -269,7 +269,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
             int resID = this.reactContext.getResources().getIdentifier(fname, "raw", this.reactContext.getPackageName());
             mp = MediaPlayer.create(this.reactContext, resID);
         }
-        mVolume = 1;
+        mVolume = 0.5f;
         mp.setVolume(mVolume, mVolume);
 
         WritableMap map = Arguments.createMap();
@@ -317,7 +317,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
                     e.printStackTrace();
                 }
 
-                mVolume = 1;
+                mVolume = 0.5f;
                 mp.setVolume(mVolume, mVolume);
 
                 WritableMap map = Arguments.createMap();
@@ -330,6 +330,14 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
 
 
 
+    }
+
+    @ReactMethod
+    public void setVolume(float value) {
+        if(mp!=null) {
+            mVolume = value;
+            mp.setVolume(mVolume,mVolume);
+        }
     }
 
     public void run() {

@@ -15,6 +15,7 @@ NSDate *_prevProgressUpdateTime;
 NSTimeInterval _lastTime;
 NSTimeInterval fadeOutInterval;
 float _baseVolume = 0.05f;
+//NSString *_fileWithPath;
 
 
 NSTimer *_testTimer;
@@ -23,9 +24,9 @@ NSTimer *_testTimer;
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(play:(NSString *)fileName)
+RCT_EXPORT_METHOD(play:(NSString *)fileName withFilePath:(NSString *)filePath)
 {
-    NSError *error;
+    NSError *error = nil;
     
     // orginal code
     AVAudioSession *session = [AVAudioSession sharedInstance];
@@ -47,19 +48,52 @@ RCT_EXPORT_METHOD(play:(NSString *)fileName)
     
     // //test code
     //NSString *soundFilePath = [NSString stringWithFormat:@"%@/enP131.mp3",[[NSBundle mainBundle] resourcePath]];
-    
-    
-    
-    if([fileName rangeOfString:@"/"].location != NSNotFound){
-        NSURL *soundFileURL = [NSURL fileURLWithPath:fileName];
-        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
-    }else{
-        // original player code
-        NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
-                                                  withExtension:[fileName pathExtension]];
-        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+    if(filePath.length > 0){
+        if([fileName rangeOfString:@"/"].location != NSNotFound){
+            NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+            NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+        }else{
+            // original player code
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[fileName pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+        }
+        self.audioPlayer.delegate = self;
+        
+        if(error){
+            error = nil;
+            NSString *noCapsFilename = [fileName lowercaseString];
+            if([noCapsFilename rangeOfString:@"/"].location != NSNotFound){
+                NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+                NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+            }else{
+                // original player code
+                NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
+                                                          withExtension:[noCapsFilename pathExtension]];
+                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+            }
+            self.audioPlayer.delegate = self;
+        }
     }
-    self.audioPlayer.delegate = self;
+    //self.audioPlayer.delegate = self;
+    
+    
+    if(error){
+        error = nil;
+        if([fileName rangeOfString:@"/"].location != NSNotFound){
+            NSURL *soundFileURL = [NSURL fileURLWithPath:fileName];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+        }else{
+            // original player code
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[fileName pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
+        }
+        self.audioPlayer.delegate = self;
+    }
+    
     
     if(error){
         error = nil;
@@ -101,11 +135,12 @@ RCT_EXPORT_METHOD(setVolume:(nonnull NSNumber*)value) {
 }
 
 RCT_EXPORT_METHOD(initialise:(NSString *)fileName
+                  withFilePath:(NSString*)filePath
                   success:(RCTResponseSenderBlock)callback
                   
                   )
 {
-    NSError *err;
+    NSError *err = nil;
     //BOOL errorFree = true;
     //[[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     
@@ -124,20 +159,55 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
     //                                         withExtension:[fileName pathExtension]];
     
     // soundUrl was the original url used below
-    
-    if([fileName rangeOfString:@"/"].location != NSNotFound){
-        NSURL *soundFileURL = [NSURL fileURLWithPath:fileName];
-        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
-    }else{
-        NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
-                                                  withExtension:[fileName pathExtension]];
-        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
+    if(filePath.length > 0){
+        if([fileName rangeOfString:@"/"].location != NSNotFound){
+            NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+            NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+        }else{
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[fileName pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
+        }
+        self.audioPlayer.delegate = self;
+        //self.audioPlayer.volume = _baseVolume;
+        
+        //fadeOutInterval = 0;
+        //_lastTime = 0;
+        
+        if(err) {
+            err = nil;
+            NSString *noCapsFilename = [fileName lowercaseString];
+            if([noCapsFilename rangeOfString:@"/"].location != NSNotFound || filePath.length > 0){
+                /*NSURL *soundFileURL = [NSURL fileURLWithPath:noCapsFilename];
+                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];*/
+                NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+                NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+            }else{
+                NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
+                                                          withExtension:[noCapsFilename pathExtension]];
+                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
+            }
+            self.audioPlayer.delegate = self;
+        }
     }
-    self.audioPlayer.delegate = self;
-    //self.audioPlayer.volume = _baseVolume;
     
-    fadeOutInterval = 0;
-    _lastTime = 0;
+    if(err){
+        err = nil;
+        if([fileName rangeOfString:@"/"].location != NSNotFound){
+            NSURL *soundFileURL = [NSURL fileURLWithPath:fileName];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+        }else{
+            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
+                                                      withExtension:[fileName pathExtension]];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
+        }
+        self.audioPlayer.delegate = self;
+    }
+        //self.audioPlayer.volume = _baseVolume;
+        
+
     
     if(err) {
         err = nil;
@@ -151,10 +221,14 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
             self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
         }
         self.audioPlayer.delegate = self;
-        if(err){
-            //errorFree = false;
-            callback(@[@(-1), @(-1)]);
-        }
+    }
+    
+    fadeOutInterval = 0;
+    _lastTime = 0;
+    
+    if(err){
+        //errorFree = false;
+        callback(@[@(-1), @(-1)]);
     }
     if(!err){
         

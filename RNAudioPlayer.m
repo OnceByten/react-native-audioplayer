@@ -49,31 +49,21 @@ RCT_EXPORT_METHOD(play:(NSString *)fileName withFilePath:(NSString *)filePath)
     // //test code
     //NSString *soundFilePath = [NSString stringWithFormat:@"%@/enP131.mp3",[[NSBundle mainBundle] resourcePath]];
     if(filePath.length > 0){
-        if([fileName rangeOfString:@"/"].location != NSNotFound){
-            NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
-            NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
-            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
-        }else{
-            // original player code
-            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
-                                                      withExtension:[fileName pathExtension]];
-            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
-        }
+
+        NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+        NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+
         self.audioPlayer.delegate = self;
         
         if(error){
             error = nil;
             NSString *noCapsFilename = [fileName lowercaseString];
-            if([noCapsFilename rangeOfString:@"/"].location != NSNotFound){
-                NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
-                NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
-                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
-            }else{
-                // original player code
-                NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
-                                                          withExtension:[noCapsFilename pathExtension]];
-                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&error];
-            }
+            
+            _fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, noCapsFilename];
+            soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&error];
+
             self.audioPlayer.delegate = self;
         }
     }
@@ -160,35 +150,20 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
     
     // soundUrl was the original url used below
     if(filePath.length > 0){
-        if([fileName rangeOfString:@"/"].location != NSNotFound){
-            NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
-            NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
-            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
-        }else{
-            NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[fileName lastPathComponent] stringByDeletingPathExtension]
-                                                      withExtension:[fileName pathExtension]];
-            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
-        }
+
+        NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
+        NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+        self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+
         self.audioPlayer.delegate = self;
-        //self.audioPlayer.volume = _baseVolume;
-        
-        //fadeOutInterval = 0;
-        //_lastTime = 0;
         
         if(err) {
             err = nil;
             NSString *noCapsFilename = [fileName lowercaseString];
-            if([noCapsFilename rangeOfString:@"/"].location != NSNotFound || filePath.length > 0){
-                /*NSURL *soundFileURL = [NSURL fileURLWithPath:noCapsFilename];
-                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];*/
-                NSString *_fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, fileName];
-                NSURL *soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
-                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
-            }else{
-                NSURL *soundURL = [[NSBundle mainBundle] URLForResource:[[noCapsFilename lastPathComponent] stringByDeletingPathExtension]
-                                                          withExtension:[noCapsFilename pathExtension]];
-                self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundURL error:&err];
-            }
+            _fileWithPath = [NSString stringWithFormat:@"%@%@", filePath, noCapsFilename];
+            soundFileURL = [NSURL fileURLWithPath:_fileWithPath];
+            self.audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:soundFileURL error:&err];
+
             self.audioPlayer.delegate = self;
         }
     }
@@ -205,7 +180,7 @@ RCT_EXPORT_METHOD(initialise:(NSString *)fileName
         }
         self.audioPlayer.delegate = self;
     }
-        //self.audioPlayer.volume = _baseVolume;
+    //self.audioPlayer.volume = _baseVolume;
         
 
     

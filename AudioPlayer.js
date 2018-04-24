@@ -53,6 +53,9 @@ var AudioPlayer = {
   setFadeOutInterval(val) {
     RNAudioPlayer.setFadeOutInterval(val);
   },
+  setFadeOutIntervalWithOptions(fadeOutTime, fadeDuration) {
+    RNAudioPlayer.setFadeOutIntervalWithOptions(fadeOutTime, fadeDuration);
+  },
   getLastPointInTime(callback) {
     RNAudioPlayer.getLastPointInTime((response) => { callback(response) });
   },

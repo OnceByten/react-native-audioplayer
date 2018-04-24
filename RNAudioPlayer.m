@@ -276,7 +276,7 @@ RCT_EXPORT_METHOD(setFadeOutInterval:(nonnull NSNumber *) fadeOutTime){
 }
 
 RCT_EXPORT_METHOD(setFadeOutIntervalWithOptions:(nonnull NSNumber *) fadeOutTime
-                  fadeDuration:(NSNumber *) fadeDuration
+                  fadeDuration:(nonnull NSNumber *) fadeDuration
                   ){
     
     NSTimeInterval intv = [fadeOutTime doubleValue];

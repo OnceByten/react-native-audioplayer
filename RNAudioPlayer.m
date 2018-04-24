@@ -14,7 +14,13 @@ int _progressUpdateInterval;
 NSDate *_prevProgressUpdateTime;
 NSTimeInterval _lastTime;
 NSTimeInterval fadeOutInterval;
+NSTimeInterval fadeOutEndPoint;
 float _baseVolume = 0.05f;
+float _lowerLimit = 0.01f;
+float _reductionFactor = 0.001f;
+float _reductionRepeatAfter = 0.1f;
+float _fadeDuration = 0;
+bool _isFading = false;
 //NSString *_fileWithPath;
 
 
@@ -242,22 +248,52 @@ RCT_EXPORT_METHOD(seek:(nonnull NSNumber *) gotoTime){
     
         if (self.audioPlayer && intv>=0 && intv<=_currentDuration) {
             [self.audioPlayer stop];
+            _isFading = false;
+            //self.audioPlayer.volume = _baseVolume;
+            [self.audioPlayer setVolume:_baseVolume];
             [self.audioPlayer setCurrentTime:intv];
             [self.audioPlayer prepareToPlay];
             [self.audioPlayer play];
         }
+    //_isFading = false;
     
 }
 
 RCT_EXPORT_METHOD(setFadeOutInterval:(nonnull NSNumber *) fadeOutTime){
     
     NSTimeInterval intv = [fadeOutTime doubleValue];
-    
+
     if (self.audioPlayer && intv>=0 && intv<=_currentDuration) {
         fadeOutInterval = intv;
         
 //        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (long)fadeOutTime *NSEC_PER_SEC);
 //        dispatch_after(popTime, dispatch_get_main_queue(), ^ { [self doVolumeFade]; });
+        
+        
+    }
+    _isFading = false;
+    
+}
+
+RCT_EXPORT_METHOD(setFadeOutIntervalWithOptions:(nonnull NSNumber *) fadeOutTime
+                  fadeDuration:(NSNumber *) fadeDuration
+                  ){
+    
+    NSTimeInterval intv = [fadeOutTime doubleValue];
+    NSTimeInterval _fadeDuration = [fadeDuration doubleValue];
+    NSTimeInterval fadeOutPoint = intv + _fadeDuration;
+    
+    //float fadeDuration_f = [fadeDuration floatValue];
+    _isFading = false;
+    
+    
+    if (self.audioPlayer && intv>=0 && intv<=_currentDuration) {
+        fadeOutInterval = intv;
+        fadeOutEndPoint = fadeOutPoint;
+        //_fadeDuration = fadeDuration_f;
+        
+        //        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (long)fadeOutTime *NSEC_PER_SEC);
+        //        dispatch_after(popTime, dispatch_get_main_queue(), ^ { [self doVolumeFade]; });
         
         
     }
@@ -279,13 +315,19 @@ RCT_EXPORT_METHOD(getLastPointInTime: (RCTResponseSenderBlock)callback)
 }
 
 - (void)doVolumeFade {
-    if (self.audioPlayer.volume > 0.1) {
-        self.audioPlayer.volume = self.audioPlayer.volume - 0.1;
-        [self performSelector:@selector(doVolumeFade) withObject:nil afterDelay:0.1];
+    float curVol = self.audioPlayer.volume;
+    if (self.audioPlayer.volume > _lowerLimit) { // 0.1
+        if(_isFading){
+            //self.audioPlayer.volume = self.audioPlayer.volume - 0.1; // - 0.1
+            
+            //NSLog(@"Fading...%@", @(self.audioPlayer.volume));
+            //[self performSelector:@selector(doVolumeFade) withObject:nil afterDelay:_reductionRepeatAfter];
+        }
     } else {
         //go to the very end - complete!
+        NSLog(@"Faded...%@", @(self.audioPlayer.volume));
         self.audioPlayer.volume = 0;
-        self.audioPlayer.currentTime = _currentDuration-1;
+        self.audioPlayer.currentTime = _currentDuration-0.2; // was -1 (check to see if this is why end grabs aren't working (they check for 0.3 threshold)
         fadeOutInterval = 0;
         //[self seek:([NSNumber numberWithDouble:_currentDuration])];
         
@@ -334,9 +376,40 @@ RCT_EXPORT_METHOD(getLastPointInTime: (RCTResponseSenderBlock)callback)
     }
     
     //NSLog(@"fadeOutInterval: " fadeOutInterval @"_currentTime: " _currentTime);
+    /*if (self.audioPlayer && fadeOutInterval>0 && fadeOutInterval<=_currentTime) {
+        if(!_isFading){
+            _isFading = true;
+            NSLog(@"Time to fade...");
+            [self doVolumeFade];    //fade out and skip to the end if we've set a time to do so
+        }
+    }*/
     if (self.audioPlayer && fadeOutInterval>0 && fadeOutInterval<=_currentTime) {
-        NSLog(@"Time to fade...");
-        [self doVolumeFade];    //fade out and skip to the end if we've set a time to do so
+        
+        // check fade out point is valid for fade (prevent potential /0 error)
+        if(_currentTime >= fadeOutEndPoint && fadeOutEndPoint > 0){
+            self.audioPlayer.volume = 0;
+            self.audioPlayer.currentTime = _currentDuration-0.2; // was -1 (check to see if this is why end grabs aren't working (they check for 0.3 threshold)
+            fadeOutInterval = 0;
+        }else{
+            if((fadeOutEndPoint - fadeOutInterval) > 0){
+                
+                // calc end point of plottable region (end of fade)
+                // -- This is now set in base vars as part of setIntervalWithOptions.
+                
+                // calc plotted position in scalable region (current position in fade)
+                double _curPercentagePoint = (_currentTime - fadeOutInterval) / (fadeOutEndPoint - fadeOutInterval);
+                
+                // calc volume for current position (logarithmically)
+                float _curLogPoint = (float) ((_curPercentagePoint * 9) + 1);
+                float _curScaledVolume = _baseVolume * (1-log10f(_curLogPoint));
+                
+                NSLog(@"Scaling Volume... pos:%f, vol: %f", _curLogPoint, _curScaledVolume);
+                // set new volume
+                self.audioPlayer.volume = _curScaledVolume;
+            }else{
+                
+            }
+        }
     }
 }
 
@@ -366,7 +439,8 @@ RCT_EXPORT_METHOD(getLastPointInTime: (RCTResponseSenderBlock)callback)
     [self sendProgressUpdate];
     
     //self.audioPlayer.volume = 1;
-    self.audioPlayer.volume = _baseVolume;
+    //self.audioPlayer.volume = _baseVolume;
+    [self.audioPlayer setVolume:_baseVolume];
     
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"playerFinished" body:@{
                                                                                          @"finished": @TRUE

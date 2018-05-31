@@ -32,6 +32,11 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
   private static AudioManager audioManager;
   private float mVolume = 0.5f;
   private int mFadeOutTime = 0;
+  private boolean _isFading = false;
+  private double fadeOutInterval;
+  private double fadeOutEndPoint;
+  private float _lowerLimit = 0.01f;
+  private  double _lastTime = 0;
 
   public RNAudioPlayerModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -70,72 +75,123 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
       }
   }
 
+    @ReactMethod
+    public void setFadeOutIntervalWithOptions(final int fadeOutTime, final int fadeDuration) {
+        if(mp!=null) {
+            try {
+
+                double intv = (double)(fadeOutTime * 1000);
+                double _fadeDuration = (double)(fadeDuration*1000);
+                double fadeOutPoint = (intv+_fadeDuration);
+
+                _isFading = false;
+
+                if(intv>0 && intv<mp.getDuration()) {
+                    fadeOutInterval = intv;
+                    fadeOutEndPoint = fadeOutPoint;
+                }
+            }
+            catch (Exception e){
+                try {
+                    Log.d("AUDIO", e.getMessage());
+                }
+                catch(Exception ex) {}
+            }
+        }
+    }
+
+  private void doVolumeFade() {
+    try {
+        float curVol = getDeviceVolume();
+        int curDuration = mp.getDuration();
+        if(curVol>_lowerLimit) {
+            if(_isFading) {
+
+            }
+        }
+        else {
+            mp.setVolume(0,0);
+            mp.seekTo((int)(curDuration-200));
+            fadeOutInterval = 0;
+        }
+    }
+    catch (Exception e) {
+        try {
+            Log.d("AUDIO", e.getMessage());
+        }
+        catch(Exception ex) {}
+    }
+  }
+
   @ReactMethod
   public void startFadeOut() {
 
       if(mp!=null) {
-          final int duration = 2000;    //2sec
-          final float deviceVolume = getDeviceVolume();
-
-          //Log.d("AUDIO", "deviceVolume: " + String.valueOf(deviceVolume));
-
-          final Handler h = new Handler();
-          h.postDelayed(new Runnable() {
-              private float time = duration;
-              private float volume = 0.0f;
-
-              @Override
-              public void run() {
-                  try {
-                      if (!mp.isPlaying())
-                          mp.start();
-                      time -= 100;
-                      volume = (deviceVolume * time) / duration;
-
-
-                      //Log.d("AUDIO", "deviceVolume: " + String.valueOf(deviceVolume) + ", new vol: " + String.valueOf(volume));
-
-                      mp.setVolume(volume, volume);
-                      if (time > 0)
-                          h.postDelayed(this, 100);
-                      else {
-                          mp.seekTo(mp.getDuration());
-                          mp.stop();
-                          mp.release();
-                      }
-                  }
-                  catch (Exception e) {}
-              }
-          }, 100);
-
-//          final Timer timer = new Timer(true);
-//          TimerTask timerTask = new TimerTask()
-//          {
-//              @Override
-//              public void run()
-//              {
-//                  //Log.i("RNAudio - mVolume: ", String.valueOf(mVolume));
-//                  if(mVolume>0.1) {
-//                      mVolume = mVolume-0.1f;
-//                      mp.setVolume(mVolume,mVolume);
-//                  }
-//                  else {
-//                      try {
-//                          mp.setVolume(0, 0);
-//
-//
-//                          mp.seekTo(mp.getDuration() - 10);
-//                      }
-//                      catch(Exception e) {}
-//                      timer.cancel();
-//                      timer.purge();
-//
-//                  }
-//              }
-//          };
-//
-//          timer.schedule(timerTask,250,250);
+          doVolumeFade();
       }
+//      if(mp!=null) {
+//          final int duration = 2000;    //2sec
+//          final float deviceVolume = getDeviceVolume();
+//
+//          //Log.d("AUDIO", "deviceVolume: " + String.valueOf(deviceVolume));
+//
+//          final Handler h = new Handler();
+//          h.postDelayed(new Runnable() {
+//              private float time = duration;
+//              private float volume = 0.0f;
+//
+//              @Override
+//              public void run() {
+//                  try {
+//                      if (!mp.isPlaying())
+//                          mp.start();
+//                      time -= 100;
+//                      volume = (deviceVolume * time) / duration;
+//
+//
+//                      //Log.d("AUDIO", "deviceVolume: " + String.valueOf(deviceVolume) + ", new vol: " + String.valueOf(volume));
+//
+//                      mp.setVolume(volume, volume);
+//                      if (time > 0)
+//                          h.postDelayed(this, 100);
+//                      else {
+//                          mp.seekTo(mp.getDuration());
+//                          mp.stop();
+//                          mp.release();
+//                      }
+//                  }
+//                  catch (Exception e) {}
+//              }
+//          }, 100);
+//
+////          final Timer timer = new Timer(true);
+////          TimerTask timerTask = new TimerTask()
+////          {
+////              @Override
+////              public void run()
+////              {
+////                  //Log.i("RNAudio - mVolume: ", String.valueOf(mVolume));
+////                  if(mVolume>0.1) {
+////                      mVolume = mVolume-0.1f;
+////                      mp.setVolume(mVolume,mVolume);
+////                  }
+////                  else {
+////                      try {
+////                          mp.setVolume(0, 0);
+////
+////
+////                          mp.seekTo(mp.getDuration() - 10);
+////                      }
+////                      catch(Exception e) {}
+////                      timer.cancel();
+////                      timer.purge();
+////
+////                  }
+////              }
+////          };
+////
+////          timer.schedule(timerTask,250,250);
+//      }
   }
 
   @ReactMethod
@@ -262,6 +318,11 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
     }
 
     @ReactMethod
+    public void getLastPointInTime(final Callback callback) {
+        callback.invoke((_lastTime/1000.0f));
+    }
+
+    @ReactMethod
     public void initialise(String audio, final Callback callback) {
         if(audio!=null) {
             String fname = audio.toLowerCase();
@@ -341,34 +402,99 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
     }
 
     public void run() {
-        int currentPosition= 0;
-        int total = mp.getDuration();
-        while (mp!=null && currentPosition<total) {
-            try {
-                Thread.sleep(250);
-                currentPosition= mp.getCurrentPosition();
-            } catch (InterruptedException e) {
-                return;
-            } catch (Exception e) {
-                return;
-            }
+        int _currentTime = 0;
+        int _currentDuration = 0;
+        try {
+            if(mp!=null) {
+                _currentDuration = mp.getDuration();
 
-            try {
-                //Log.d("AUDIO", "pos: " + String.valueOf(currentPosition) + ", fade: " + String.valueOf(mFadeOutTime));
-                if(currentPosition > mFadeOutTime && mFadeOutTime>0) {
-                    this.startFadeOut();
+                while (mp != null && _currentTime < _currentDuration) {
+                    try {
+                        Thread.sleep(10);
+                        _currentTime = mp.getCurrentPosition();
+                    } catch (InterruptedException e) {
+                        return;
+                    } catch (Exception e) {
+                        return;
+                    }
+
+                    if (_currentTime > 0) {
+                        _lastTime = mp.getCurrentPosition();
+                    }
+
+                    if (fadeOutInterval > 0 && fadeOutInterval <= _currentTime) {
+                        if (_currentTime >= fadeOutEndPoint && fadeOutEndPoint > 0) {
+                            mp.setVolume(0, 0);
+                            mp.seekTo((int) (_currentDuration - 200));
+                            fadeOutInterval = 0;
+                        } else {
+                            if ((fadeOutEndPoint - fadeOutInterval) > 0) {
+
+                                double _cTime = _currentTime/1000.0f;
+                                double _foInt = fadeOutInterval/1000.0f;
+                                double _foEP = fadeOutEndPoint/1000.0f;
+
+
+
+                                double _curPercentagePoint = (_cTime-_foInt)/(_foEP-_foInt); //(_currentTime - fadeOutInterval) / (fadeOutEndPoint - fadeOutInterval);
+
+                                float _curLogPoint = (float) ((_curPercentagePoint * 9.0f) + 1.0f);
+                                float _curScaledVolume = (float) (mVolume * (1.0f - Math.log10(_curLogPoint)));
+
+                                //Log.d("AUDIO", "Scaling volume...perc:" + String.valueOf(_curPercentagePoint) + ", pos:" + String.valueOf(_curLogPoint) + ", vol: " + String.valueOf(_curScaledVolume));
+                                mp.setVolume(_curScaledVolume, _curScaledVolume);
+                            }
+                        }
+                    }
+
+
+                    WritableMap map = Arguments.createMap();
+
+                    map.putDouble("currentTime", (_currentTime / 1000.0f));
+                    map.putDouble("currentDuration", (_currentDuration / 1000.0f));
+
+                    reactContext
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("playerProgress", map);
                 }
             }
-            catch (Exception e) {}
-
-            WritableMap map = Arguments.createMap();
-
-            map.putDouble("currentTime", (currentPosition/1000.0f));
-            map.putDouble("currentDuration", (total/1000.0f));
-
-            reactContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit("playerProgress", map);
         }
+        catch (Exception e) {
+            try {
+                Log.d("AUDIO", e.getMessage());
+            }
+            catch(Exception ex) {}
+        }
+
+
+//        int currentPosition= 0;
+//        int total = mp.getDuration();
+//        while (mp!=null && currentPosition<total) {
+//            try {
+//                Thread.sleep(250);
+//                currentPosition= mp.getCurrentPosition();
+//            } catch (InterruptedException e) {
+//                return;
+//            } catch (Exception e) {
+//                return;
+//            }
+//
+//            try {
+//                //Log.d("AUDIO", "pos: " + String.valueOf(currentPosition) + ", fade: " + String.valueOf(mFadeOutTime));
+//                if(currentPosition > mFadeOutTime && mFadeOutTime>0) {
+//                    this.startFadeOut();
+//                }
+//            }
+//            catch (Exception e) {}
+//
+//            WritableMap map = Arguments.createMap();
+//
+//            map.putDouble("currentTime", (currentPosition/1000.0f));
+//            map.putDouble("currentDuration", (total/1000.0f));
+//
+//            reactContext
+//                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+//                    .emit("playerProgress", map);
+//        }
     }
 }

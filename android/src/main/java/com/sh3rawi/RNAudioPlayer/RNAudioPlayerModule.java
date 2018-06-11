@@ -286,6 +286,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
             if(fd==null) {
                 //ERROR!
                 Log.d("AudioDEBUG", "File error!");
+                callback.invoke(-1);
             }
             else {
                 mp = new MediaPlayer();
@@ -368,6 +369,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
             if(fd==null) {
                 //ERROR!
                 Log.d("AudioDEBUG", "File error!");
+                callback.invoke(-1);
             }
             else {
                 mp = new MediaPlayer();

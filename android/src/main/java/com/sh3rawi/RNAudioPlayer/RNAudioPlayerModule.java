@@ -411,7 +411,7 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
 
                 while (mp != null && _currentTime < _currentDuration) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(250);
                         _currentTime = mp.getCurrentPosition();
                     } catch (InterruptedException e) {
                         return;

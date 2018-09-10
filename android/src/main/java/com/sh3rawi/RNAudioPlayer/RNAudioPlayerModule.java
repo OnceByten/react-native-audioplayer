@@ -90,6 +90,10 @@ public class RNAudioPlayerModule extends ReactContextBaseJavaModule implements R
                     fadeOutInterval = intv;
                     fadeOutEndPoint = fadeOutPoint;
                 }
+                else {
+                    fadeOutInterval = 0;
+                    fadeOutEndPoint = 0;
+                }
             }
             catch (Exception e){
                 try {
